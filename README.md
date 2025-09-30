@@ -24,6 +24,8 @@ Register the plugin in your panel service provider as
 ```php
 $panel->plugin(FailedJobsPlugin::make());
 ```
+> [!IMPORTANT]
+> If you are using laravel horizon, Instruct the package by chaining the `->usingHorizon()` method.
 
 ## Retrying Failed Jobs
 You can retry failed jobs each one separetely using the retry action next to each job, or bulk retry by selecting 
