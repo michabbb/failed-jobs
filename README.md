@@ -1,61 +1,82 @@
-# :package_description
+# A Filament Package to Retry and manage failed jobs
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/srinathreddydudi/failed-jobs.svg?style=flat-square)](https://packagist.org/packages/srinathreddydudi/failed-jobs)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/srinathreddydudi/failed-jobs/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/srinathreddydudi/failed-jobs/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/srinathreddydudi/failed-jobs/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/srinathreddydudi/failed-jobs/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/srinathreddydudi/failed-jobs.svg?style=flat-square)](https://packagist.org/packages/srinathreddydudi/failed-jobs)
 
-<!--delete-->
----
-This repo can be used to scaffold a Filament plugin. Follow these steps to get started:
+This package provides a failed jobs resource which can be used to retry and manage laravel failed queue jobs.
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Make something great!
----
-<!--/delete-->
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+![failed jobs index table](/resources/screenshots/index.png)
 
 ## Installation
 
 You can install the package via composer:
 
 ```bash
-composer require :vendor_slug/:package_slug
-```
-
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
-php artisan migrate
-```
-
-You can publish the config file with:
-
-```bash
-php artisan vendor:publish --tag=":package_slug-config"
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
-```
-
-This is the contents of the published config file:
-
-```php
-return [
-];
+composer require srinathreddydudi/failed-jobs
 ```
 
 ## Usage
 
+Register the plugin in your panel service provider as
+
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+$panel->plugin(FailedJobsPlugin::make());
+```
+
+## Retrying Failed Jobs
+You can retry failed jobs each one separetely using the retry action next to each job, or bulk retry by selecting 
+multiple jobs and then using the bulk options' menu. You can also use the global retry action to retry all failed jobs or 
+jobs from a specific queue.
+
+![retry failed jobs](/resources/screenshots/retry-modal.png)
+
+## Filtering Jobs
+This package by default comes with following filters which you can use to 
+filter failed jobs.
+- Connection
+- Queue
+- Job
+- Failed At
+
+![filter failed jobs](/resources/screenshots/filters.png)
+
+## Pruning Jobs
+If you have too many stale failed jobs, You can use the global prune jobs action to prune stale failed jobs. 
+This action will prompt you to input the hours to retain the failed jobs. Any failed jobs that are older than the 
+given hours will be pruned.
+
+For example, If you enter 12 hours, It will prune all failed jobs which are older than 12 hours.
+
+![retry failed jobs](/resources/screenshots/prune-modal.png)
+
+## Customization
+This package works out of the box and adds a `Failed Jobs` resource to your admin panel. You can customize the
+display if needed.
+
+### Remove connection column from index table
+Most of the applications do not leverage more than one queue connection. So it would be clean to hide the connection
+column in this case. You can do so by chaining the `hideConnectionOnIndex` method as below.
+
+```php
+FailedJobsPlugin::make()->hideConnectionOnIndex()
+```
+
+### Remove queue column from index table
+Similarly, if your application only pushes to the default queue, You can hide the queue column by chaining the `hideQueueOnIndex` method as below.
+
+```php
+FailedJobsPlugin::make()->hideQueueOnIndex()
+```
+
+### Change filters layout
+This package comes with a few filters to help you easily filter failed jobs. If you would like to change how the
+filters are displayed, You can do so by chaining `filtersLayout` method which
+accepts `Filament\Tables\Enums\FiltersLayout` parameter.
+
+```php
+FailedJobsPlugin::make()->filtersLayout(FiltersLayout::AboveContent)
 ```
 
 ## Testing
@@ -78,7 +99,7 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
+- [Srinath Reddy Dudi](https://github.com/srinathreddydudi)
 - [All Contributors](../../contributors)
 
 ## License
