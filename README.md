@@ -1,17 +1,17 @@
-# A Filament Package to Retry and manage failed jobs
+# A Filament Plugin to Retry and manage failed jobs
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/srinathreddydudi/failed-jobs.svg?style=flat-square)](https://packagist.org/packages/srinathreddydudi/failed-jobs)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/srinathreddydudi/failed-jobs/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/srinathreddydudi/failed-jobs/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/srinathreddydudi/failed-jobs/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/srinathreddydudi/failed-jobs/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/srinathreddydudi/failed-jobs.svg?style=flat-square)](https://packagist.org/packages/srinathreddydudi/failed-jobs)
 
-This package provides a failed jobs resource which can be used to retry and manage laravel failed queue jobs.
+This plugin provides a failed jobs resource which can be used to retry and manage laravel failed queue jobs.
 
 ![failed jobs index table](/resources/screenshots/index.png)
 
 ## Installation
 
-You can install the package via composer:
+You can install the plugin via composer:
 
 ```bash
 composer require srinathreddydudi/failed-jobs
@@ -25,7 +25,7 @@ Register the plugin in your panel service provider as
 $panel->plugin(FailedJobsPlugin::make());
 ```
 > [!IMPORTANT]
-> If you are using laravel horizon, Instruct the package by chaining the `->usingHorizon()` method.
+> If you are using laravel horizon, Instruct the plugin by chaining the `->usingHorizon()` method.
 
 ## Retrying Failed Jobs
 You can retry failed jobs each one separetely using the retry action next to each job, or bulk retry by selecting 
@@ -35,7 +35,7 @@ jobs from a specific queue.
 ![retry failed jobs](/resources/screenshots/retry-modal.png)
 
 ## Filtering Jobs
-This package by default comes with following filters which you can use to 
+This plugin by default comes with the following filters which you can use to 
 filter failed jobs.
 - Connection
 - Queue
@@ -54,7 +54,7 @@ For example, If you enter 12 hours, It will prune all failed jobs which are olde
 ![retry failed jobs](/resources/screenshots/prune-modal.png)
 
 ## Customization
-This package works out of the box and adds a `Failed Jobs` resource to your admin panel. You can customize the
+This plugin works out of the box and adds a `Failed Jobs` resource to your admin panel. You can customize the
 display if needed.
 
 ### Remove connection column from index table
@@ -73,7 +73,7 @@ FailedJobsPlugin::make()->hideQueueOnIndex()
 ```
 
 ### Change filters layout
-This package comes with a few filters to help you easily filter failed jobs. If you would like to change how the
+This plugin comes with a few filters to help you easily filter failed jobs. If you would like to change how the
 filters are displayed, You can do so by chaining `filtersLayout` method which
 accepts `Filament\Tables\Enums\FiltersLayout` parameter.
 
