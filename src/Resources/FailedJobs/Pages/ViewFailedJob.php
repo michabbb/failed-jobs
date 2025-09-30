@@ -9,7 +9,6 @@ use SrinathReddyDudi\FailedJobs\Resources\FailedJobs\FailedJobResource;
 
 class ViewFailedJob extends ViewRecord
 {
-
     protected static string $resource = FailedJobResource::class;
 
     protected function getHeaderActions(): array
