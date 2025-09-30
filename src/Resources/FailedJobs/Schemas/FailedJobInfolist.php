@@ -2,6 +2,7 @@
 
 namespace SrinathReddyDudi\FailedJobs\Resources\FailedJobs\Schemas;
 
+use Filament\Infolists\Components\CodeEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 use Novadaemon\FilamentPrettyJson\Infolist\PrettyJsonEntry;
@@ -29,7 +30,10 @@ class FailedJobInfolist
 
                 TextEntry::make('exception'),
 
-                PrettyJsonEntry::make('payload'),
+                TextEntry::make('payload')
+                    ->formatStateUsing(function ($state) {
+                        return '<pre style="overflow-x: auto">' . htmlspecialchars(json_encode(json_decode($state, true), JSON_PRETTY_PRINT)) . '</pre>';
+                    })->html(),
             ]);
     }
 }
