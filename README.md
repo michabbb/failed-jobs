@@ -5,7 +5,10 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/srinathreddydudi/failed-jobs/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/srinathreddydudi/failed-jobs/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/srinathreddydudi/failed-jobs.svg?style=flat-square)](https://packagist.org/packages/srinathreddydudi/failed-jobs)
 
-This plugin provides a failed jobs resource which can be used to retry and manage laravel failed queue jobs.
+This plugin provides a failed jobs resource which can be used to retry and manage Laravel failed queue jobs.
+
+> [!NOTE]
+> The plugin can aggregate failed jobs from multiple Laravel projects. Configure the remote projects inside `config/failed-jobs.php` and point each entry to the database connection that exposes its `failed_jobs` table. All retry and delete actions are dispatched through an action spool table so that the remote systems can execute them locally.
 
 ![failed jobs index table](/resources/screenshots/index.png)
 

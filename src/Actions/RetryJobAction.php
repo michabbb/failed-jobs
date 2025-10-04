@@ -4,7 +4,6 @@ namespace SrinathReddyDudi\FailedJobs\Actions;
 
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
-use SrinathReddyDudi\FailedJobs\Models\FailedJob;
 
 class RetryJobAction extends Action
 {
@@ -26,7 +25,7 @@ class RetryJobAction extends Action
             ->modalDescription(__('Are you sure you want to retry this job?'))
             ->requiresConfirmation()
             ->successNotificationTitle(__('Job pushed to queue successfully!'))
-            ->action(function (FailedJob $job) {
+            ->action(function (array $job) {
                 $this->retryJobs(collect([$job]));
             });
     }
