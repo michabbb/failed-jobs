@@ -9,7 +9,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use SrinathReddyDudi\FailedJobs\Models\FailedJob;
 use SrinathReddyDudi\FailedJobs\Resources\FailedJobs\Pages\ListFailedJobs;
-use SrinathReddyDudi\FailedJobs\Resources\FailedJobs\Pages\ViewFailedJob;
 use SrinathReddyDudi\FailedJobs\Resources\FailedJobs\Schemas\FailedJobInfolist;
 use SrinathReddyDudi\FailedJobs\Resources\FailedJobs\Tables\FailedJobsTable;
 
@@ -33,7 +32,6 @@ class FailedJobResource extends Resource
     {
         return [
             'index' => ListFailedJobs::route('/'),
-            'view' => ViewFailedJob::route('/{record}'),
         ];
     }
 }

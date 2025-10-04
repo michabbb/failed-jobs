@@ -2,25 +2,32 @@
 
 namespace SrinathReddyDudi\FailedJobs\Actions;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Artisan;
-use SrinathReddyDudi\FailedJobs\FailedJobsPlugin;
+use SrinathReddyDudi\FailedJobs\Enums\FailedJobActionType;
+use SrinathReddyDudi\FailedJobs\Support\FailedJobActionDispatcher;
 
 trait ManagesJobs
 {
     public function retryJobs(Collection $jobs): void
     {
-        Artisan::call('queue:retry ' . $jobs->pluck('uuid')->implode(' '));
+        $grouped = $jobs->groupBy('project_key');
+
+        foreach ($grouped as $projectKey => $projectJobs) {
+            FailedJobActionDispatcher::dispatch($projectKey, FailedJobActionType::RetryJobs, [
+                'jobs' => $projectJobs->map(fn (array $job) => Arr::only($job, ['id', 'uuid', 'queue', 'connection']))->values()->all(),
+            ]);
+        }
     }
 
     public function deleteJobs(Collection $jobs): void
     {
-        foreach ($jobs as $job) {
-            if (FailedJobsPlugin::get()->isUsingHorizon()) {
-                Artisan::call('horizon:forget ' . $job->uuid);
-            } else {
-                Artisan::call('queue:forget ' . $job->uuid);
-            }
+        $grouped = $jobs->groupBy('project_key');
+
+        foreach ($grouped as $projectKey => $projectJobs) {
+            FailedJobActionDispatcher::dispatch($projectKey, FailedJobActionType::DeleteJobs, [
+                'jobs' => $projectJobs->map(fn (array $job) => Arr::only($job, ['id', 'uuid', 'queue', 'connection']))->values()->all(),
+            ]);
         }
     }
 }

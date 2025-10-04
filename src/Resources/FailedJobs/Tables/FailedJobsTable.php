@@ -3,48 +3,72 @@
 namespace SrinathReddyDudi\FailedJobs\Resources\FailedJobs\Tables;
 
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 use SrinathReddyDudi\FailedJobs\Actions\DeleteJobAction;
 use SrinathReddyDudi\FailedJobs\Actions\DeleteJobsBulkAction;
 use SrinathReddyDudi\FailedJobs\Actions\RetryJobAction;
 use SrinathReddyDudi\FailedJobs\Actions\RetryJobsBulkAction;
+use SrinathReddyDudi\FailedJobs\Actions\ViewJobAction;
 use SrinathReddyDudi\FailedJobs\FailedJobsPlugin;
-use SrinathReddyDudi\FailedJobs\Models\FailedJob;
+use SrinathReddyDudi\FailedJobs\Support\FailedJobAggregator;
 
 class FailedJobsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->records(function (
+                ?string $sortColumn,
+                ?string $sortDirection,
+                ?string $search,
+                array $filters,
+                int $page,
+                int $recordsPerPage
+            ): LengthAwarePaginator {
+                return FailedJobAggregator::paginate(
+                    $sortColumn,
+                    $sortDirection,
+                    $search,
+                    $filters,
+                    $page,
+                    $recordsPerPage,
+                );
+            })
+            ->resolveSelectedRecordsUsing(fn (array $keys): array => FailedJobAggregator::resolve($keys))
             ->columns(array_filter([
                 TextColumn::make('id')
                     ->numeric()
                     ->sortable(),
 
-                FailedJobsPlugin::get()->hideConnectionOnIndex ? null : TextColumn::make('connection')->searchable(),
+                TextColumn::make('project_name')
+                    ->label(__('Project'))
+                    ->sortable(),
 
-                FailedJobsPlugin::get()->hideQueueOnIndex ? null : TextColumn::make('queue')->searchable(),
+                FailedJobsPlugin::get()->hideConnectionOnIndex ? null : TextColumn::make('connection')->label(__('Connection'))->sortable(),
 
-                TextColumn::make('payload')->label('Job')
-                    ->formatStateUsing(function ($state) {
-                        return json_decode($state, true)['displayName'];
-                    })->searchable(),
+                FailedJobsPlugin::get()->hideQueueOnIndex ? null : TextColumn::make('queue')->label(__('Queue'))->sortable(),
+
+                TextColumn::make('payload_display_name')
+                    ->label(__('Job'))
+                    ->searchable()
+                    ->wrap(),
 
                 TextColumn::make('exception')->wrap()->limit(100),
 
-                TextColumn::make('failed_at')->searchable(),
+                TextColumn::make('failed_at')
+                    ->dateTime()
+                    ->sortable(),
             ]))
             ->filters(self::getFiltersForIndex(), FailedJobsPlugin::get()->getFiltersLayout())
             ->recordActions([
                 RetryJobAction::make()->iconButton()->tooltip(__('Retry Job')),
-                ViewAction::make()->iconButton()->tooltip(__('View Job')),
+                ViewJobAction::make()->iconButton()->tooltip(__('View Job')),
                 DeleteJobAction::make()->iconButton()->tooltip(__('Delete Job')),
             ])
             ->toolbarActions([
@@ -52,45 +76,68 @@ class FailedJobsTable
                     RetryJobsBulkAction::make(),
                     DeleteJobsBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->searchable();
     }
 
     private static function getFiltersForIndex(): array
     {
-        $jobs = FailedJob::query()
-            ->select(['connection', 'queue'])
-            ->selectRaw("payload->>'$.displayName' AS job")
-            ->get();
-
-        $connections = $jobs->pluck('connection', 'connection')->map(fn ($conn) => ucfirst($conn))->toArray();
-        $queues = $jobs->pluck('queue', 'queue')->map(fn ($queue) => ucfirst($queue))->toArray();
-        $jobNames = $jobs->pluck('job', 'job')->toArray();
+        $options = FailedJobAggregator::filterOptions();
 
         return [
-            SelectFilter::make('Connection')->options($connections),
-            SelectFilter::make('Queue')->options($queues),
-            Filter::make('Job')
-                ->schema([
-                    Select::make('job')->options($jobNames),
+            Filter::make('project')
+                ->label(__('Project'))
+                ->form([
+                    Select::make('project')
+                        ->options($options['projects'])
+                        ->searchable()
+                        ->placeholder(__('All projects')),
                 ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['job'],
-                            fn (Builder $query, $job): Builder => $query->whereRaw("payload->>'$.displayName' = ?", [$job]),
-                        );
-                }),
+                ->indicateUsing(fn (array $data): ?string => self::indicatorFromOptions($data['project'] ?? null, $options['projects'])),
+
+            Filter::make('connection')
+                ->label(__('Connection'))
+                ->form([
+                    Select::make('connection')
+                        ->options($options['connections'])
+                        ->placeholder(__('All connections')),
+                ])
+                ->indicateUsing(fn (array $data): ?string => self::indicatorFromOptions($data['connection'] ?? null, $options['connections'])),
+
+            Filter::make('queue')
+                ->label(__('Queue'))
+                ->form([
+                    Select::make('queue')
+                        ->options($options['queues'])
+                        ->placeholder(__('All queues')),
+                ])
+                ->indicateUsing(fn (array $data): ?string => self::indicatorFromOptions($data['queue'] ?? null, $options['queues'])),
+
+            Filter::make('job')
+                ->label(__('Job'))
+                ->form([
+                    Select::make('job')
+                        ->options($options['jobs'])
+                        ->searchable()
+                        ->placeholder(__('All jobs')),
+                ])
+                ->indicateUsing(fn (array $data): ?string => $data['job'] ?? null),
+
             Filter::make('failed_at')
-                ->schema([
+                ->label(__('Failed at'))
+                ->form([
                     DatePicker::make('failed_at'),
                 ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['failed_at'],
-                            fn (Builder $query, $date): Builder => $query->whereDate('failed_at', '>=', $date),
-                        );
-                }),
+                ->indicateUsing(fn (array $data): ?string => $data['failed_at'] ?? null),
         ];
+    }
+
+    private static function indicatorFromOptions(?string $value, array $options): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        return Arr::get($options, $value, $value);
     }
 }

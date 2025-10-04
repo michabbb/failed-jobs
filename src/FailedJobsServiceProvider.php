@@ -15,6 +15,9 @@ class FailedJobsServiceProvider extends PackageServiceProvider
     public function configurePackage(Package $package): void
     {
         $package->name(static::$name)
+            ->hasConfigFile()
+            ->hasViews()
+            ->hasMigration('create_failed_job_action_spool_table')
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->askToStarRepoOnGitHub('srinathreddydudi/failed-jobs');

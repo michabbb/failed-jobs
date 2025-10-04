@@ -4,7 +4,6 @@ namespace SrinathReddyDudi\FailedJobs\Actions;
 
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
-use SrinathReddyDudi\FailedJobs\Models\FailedJob;
 
 class DeleteJobAction extends Action
 {
@@ -27,7 +26,7 @@ class DeleteJobAction extends Action
             ->modalDescription(__('Are you sure you want to delete this job?'))
             ->requiresConfirmation()
             ->successNotificationTitle(__('Job deleted!'))
-            ->action(function (FailedJob $job) {
+            ->action(function (array $job) {
                 $this->deleteJobs(collect([$job]));
             });
     }
