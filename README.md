@@ -106,6 +106,14 @@ Configure database connections in your `config/database.php` to access each proj
 ],
 ```
 
+> [!IMPORTANT]
+> **Security Considerations:**
+> - The central dashboard needs READ access to each project's `failed_jobs` table
+> - The central dashboard needs READ/WRITE access to the `failed_job_action_spool` table
+> - Each remote project needs READ/WRITE access to the `failed_job_action_spool` table
+> - Use dedicated database users with minimal required permissions
+> - Consider using read replicas for large-scale deployments
+
 ### Remote Project Setup
 
 Each remote Laravel project needs to process actions from the spool table. Run the migration on your central dashboard:

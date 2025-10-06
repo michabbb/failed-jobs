@@ -5,7 +5,6 @@ namespace SrinathReddyDudi\FailedJobs\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Config;
 use SrinathReddyDudi\FailedJobs\Enums\FailedJobActionStatus;
 use SrinathReddyDudi\FailedJobs\Enums\FailedJobActionType;
 use SrinathReddyDudi\FailedJobs\Models\FailedJobAction;
@@ -113,11 +112,9 @@ class ProcessActionSpoolCommand extends Command
                 continue;
             }
 
-            if ($usesHorizon) {
-                Artisan::call('horizon:forget', ['id' => $id]);
-            } else {
-                Artisan::call('queue:retry', ['id' => [$id]]);
-            }
+            // Both Horizon and non-Horizon projects use queue:retry
+            // Horizon will handle retry through its monitoring
+            Artisan::call('queue:retry', ['id' => [$id]]);
 
             $this->line("  Retried job: {$id}");
         }
@@ -134,11 +131,8 @@ class ProcessActionSpoolCommand extends Command
                 continue;
             }
 
-            if ($usesHorizon) {
-                Artisan::call('horizon:forget', ['id' => $id]);
-            } else {
-                Artisan::call('queue:forget', ['id' => $id]);
-            }
+            // Both Horizon and non-Horizon projects use queue:forget
+            Artisan::call('queue:forget', ['id' => $id]);
 
             $this->line("  Deleted job: {$id}");
         }
@@ -149,14 +143,7 @@ class ProcessActionSpoolCommand extends Command
         $queue = $payload['queue'] ?? 'all';
 
         if ($queue === 'all') {
-            if ($usesHorizon) {
-                Artisan::call('horizon:pause');
-                Artisan::call('queue:retry', ['id' => ['all']]);
-                Artisan::call('horizon:continue');
-            } else {
-                Artisan::call('queue:retry', ['id' => ['all']]);
-            }
-
+            Artisan::call('queue:retry', ['id' => ['all']]);
             $this->line('  Retried all jobs');
         } else {
             Artisan::call('queue:retry', ['id' => ['all'], '--queue' => $queue]);

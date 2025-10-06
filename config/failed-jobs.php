@@ -13,9 +13,27 @@ return [
     |
     */
     'projects' => [
-        // 'project-key' => [
-        //     'name' => 'Human readable project name',
-        //     'connection' => 'project-database-connection',
+        // Leave empty or comment out for single-project mode (backward compatible)
+        //
+        // Example multi-project configuration:
+        //
+        // 'local' => [
+        //     'name' => 'Main Application',
+        //     'connection' => 'mysql',  // Laravel database connection name
+        //     'failed_jobs_table' => 'failed_jobs',
+        //     'uses_horizon' => false,  // Set to true if this project uses Laravel Horizon
+        // ],
+        //
+        // 'project-api' => [
+        //     'name' => 'API Server',
+        //     'connection' => 'mysql_api',  // Must be configured in config/database.php
+        //     'failed_jobs_table' => 'failed_jobs',
+        //     'uses_horizon' => true,
+        // ],
+        //
+        // 'project-worker' => [
+        //     'name' => 'Background Worker',
+        //     'connection' => 'mysql_worker',
         //     'failed_jobs_table' => 'failed_jobs',
         //     'uses_horizon' => false,
         // ],
