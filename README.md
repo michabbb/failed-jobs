@@ -234,6 +234,13 @@ accepts `Filament\Tables\Enums\FiltersLayout` parameter.
 FailedJobsPlugin::make()->filtersLayout(FiltersLayout::AboveContent)
 ```
 
+## Documentation
+
+- **Quick Start**: This README
+- **Multi-Project Setup**: [MULTI_PROJECT_SETUP.md](MULTI_PROJECT_SETUP.md) - Comprehensive setup guide (400+ lines)
+- **Implementation Notes**: [IMPLEMENTATION_NOTES.md](IMPLEMENTATION_NOTES.md) - Technical architecture
+- **Completion Summary**: [COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md) - Delivery overview
+
 ## Testing
 
 ```bash
