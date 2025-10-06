@@ -1,0 +1,19 @@
+# Add these to your central dashboard's .env file
+# Configure database connections for each remote project
+
+# Remote Project API
+DB_API_HOST=api.example.com
+DB_API_PORT=3306
+DB_API_DATABASE=api_production
+DB_API_USERNAME=dashboard_readonly
+DB_API_PASSWORD=secure_password_here
+
+# Remote Project Worker
+DB_WORKER_HOST=worker.example.com
+DB_WORKER_PORT=3306
+DB_WORKER_DATABASE=worker_production
+DB_WORKER_USERNAME=dashboard_readonly
+DB_WORKER_PASSWORD=secure_password_here
+
+# Note: The dashboard only needs READ access to the failed_jobs table
+# and READ/WRITE access to the failed_job_action_spool table

@@ -18,6 +18,7 @@ class FailedJobsServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasMigration('create_failed_job_action_spool_table')
+            ->hasCommand(\SrinathReddyDudi\FailedJobs\Commands\ProcessActionSpoolCommand::class)
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->askToStarRepoOnGitHub('srinathreddydudi/failed-jobs');
