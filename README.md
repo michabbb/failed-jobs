@@ -30,6 +30,120 @@ $panel->plugin(FailedJobsPlugin::make());
 > [!IMPORTANT]
 > If you are using laravel horizon, Instruct the plugin by chaining the `->usingHorizon()` method.
 
+## Multi-Project Setup
+
+The plugin can aggregate failed jobs from multiple Laravel projects. This is useful when you have several applications and want to manage all failed jobs from a single dashboard.
+
+### Central Dashboard Configuration
+
+In your central dashboard project, publish and configure the plugin:
+
+```bash
+php artisan vendor:publish --tag="failed-jobs-config"
+```
+
+Edit `config/failed-jobs.php` and define your projects:
+
+```php
+return [
+    'projects' => [
+        'local' => [
+            'name' => 'Main Application',
+            'connection' => 'mysql',
+            'failed_jobs_table' => 'failed_jobs',
+            'uses_horizon' => false,
+        ],
+        'project-api' => [
+            'name' => 'API Server',
+            'connection' => 'mysql_api',
+            'failed_jobs_table' => 'failed_jobs',
+            'uses_horizon' => true,
+        ],
+        'project-worker' => [
+            'name' => 'Background Worker',
+            'connection' => 'mysql_worker',
+            'failed_jobs_table' => 'failed_jobs',
+            'uses_horizon' => false,
+        ],
+    ],
+    'spool' => [
+        'table' => 'failed_job_action_spool',
+    ],
+];
+```
+
+Each project entry requires:
+- `name`: Human-readable project name shown in the dashboard
+- `connection`: Database connection name that can access the project's `failed_jobs` table
+- `failed_jobs_table`: Name of the failed jobs table (usually `failed_jobs`)
+- `uses_horizon`: Whether the project uses Laravel Horizon
+
+### Database Connections
+
+Configure database connections in your `config/database.php` to access each project's database:
+
+```php
+'connections' => [
+    'mysql' => [
+        // Your default connection
+    ],
+    'mysql_api' => [
+        'driver' => 'mysql',
+        'host' => env('DB_API_HOST'),
+        'database' => env('DB_API_DATABASE'),
+        'username' => env('DB_API_USERNAME'),
+        'password' => env('DB_API_PASSWORD'),
+        // ...
+    ],
+    'mysql_worker' => [
+        'driver' => 'mysql',
+        'host' => env('DB_WORKER_HOST'),
+        'database' => env('DB_WORKER_DATABASE'),
+        'username' => env('DB_WORKER_USERNAME'),
+        'password' => env('DB_WORKER_PASSWORD'),
+        // ...
+    ],
+],
+```
+
+### Remote Project Setup
+
+Each remote Laravel project needs to process actions from the spool table. Run the migration on your central dashboard:
+
+```bash
+php artisan migrate
+```
+
+On each remote project, add a scheduled task to process the action spool:
+
+```php
+// app/Console/Kernel.php
+protected function schedule(Schedule $schedule)
+{
+    // Process action spool every minute
+    $schedule->command('failed-jobs:process-spool --project=project-key --limit=10')
+        ->everyMinute()
+        ->withoutOverlapping();
+}
+```
+
+Replace `project-key` with the key you defined in your central dashboard's config (e.g., `project-api`, `project-worker`).
+
+The `--limit` option controls how many actions to process per run. Adjust based on your needs.
+
+### How It Works
+
+1. When you retry or delete failed jobs from the dashboard, actions are written to the `failed_job_action_spool` table
+2. Each remote project's cron job picks up pending actions for that project
+3. The remote project executes the action locally (retry/delete) using its own queue configuration
+4. The action status is updated in the spool table
+
+This approach ensures that:
+- Queue operations run in the correct project context
+- Remote systems maintain full control over their queue drivers
+- The dashboard doesn't need direct access to execute artisan commands on remote systems
+- All queue operations respect each project's Horizon configuration
+
 ## Retrying Failed Jobs
 You can retry failed jobs each one separetely using the retry action next to each job, or bulk retry by selecting 
 multiple jobs and then using the bulk options' menu. You can also use the global retry action to retry all failed jobs or 
@@ -55,6 +169,34 @@ given hours will be pruned.
 For example, If you enter 12 hours, It will prune all failed jobs which are older than 12 hours.
 
 ![retry failed jobs](/resources/screenshots/prune-modal.png)
+
+## Action Spool Command
+
+The `failed-jobs:process-spool` command processes pending actions from the action spool table:
+
+```bash
+# Process all pending actions (limit 10 per run)
+php artisan failed-jobs:process-spool
+
+# Process only actions for a specific project
+php artisan failed-jobs:process-spool --project=project-api
+
+# Process more actions per run
+php artisan failed-jobs:process-spool --limit=50
+
+# Combine options
+php artisan failed-jobs:process-spool --project=project-worker --limit=20
+```
+
+Options:
+- `--project`: Filter actions for a specific project key (as defined in config)
+- `--limit`: Maximum number of actions to process in this run (default: 10)
+
+The command will:
+1. Find pending actions for the specified project (or all projects)
+2. Execute each action (retry/delete jobs, prune old jobs, etc.)
+3. Update the action status (completed or failed)
+4. Log any errors for debugging
 
 ## Customization
 This plugin works out of the box and adds a `Failed Jobs` resource to your admin panel. You can customize the

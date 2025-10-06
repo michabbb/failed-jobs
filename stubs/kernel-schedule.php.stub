@@ -1,0 +1,11 @@
+// Add this to your remote project's app/Console/Kernel.php
+
+protected function schedule(Schedule $schedule)
+{
+    // Process failed job actions from the central dashboard
+    // Replace 'your-project-key' with the key defined in the central dashboard config
+    $schedule->command('failed-jobs:process-spool --project=your-project-key --limit=10')
+        ->everyMinute()
+        ->withoutOverlapping()
+        ->onOneServer(); // If you run multiple servers, ensure only one processes the spool
+}
